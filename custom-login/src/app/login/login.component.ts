@@ -10,7 +10,9 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
+import { DOCUMENT } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { OKTA_AUTH } from '@okta/okta-angular';
 import { OktaAuth, Tokens } from '@okta/okta-auth-js';
 // @ts-ignore
@@ -26,7 +28,11 @@ const DEFAULT_ORIGINAL_URI = window.location.origin;
 })
 export class LoginComponent implements OnInit {
   signIn: any;
-  constructor(@Inject(OKTA_AUTH) public oktaAuth: OktaAuth) {
+  constructor(
+    @Inject(OKTA_AUTH) public oktaAuth: OktaAuth,
+    @Inject(DOCUMENT) private document: Document,
+    private router: Router,
+  ) {
     this.signIn = new OktaSignIn({
       /**
        * Note: when using the Sign-In Widget for an OIDC flow, it still
@@ -44,6 +50,7 @@ export class LoginComponent implements OnInit {
       },
       authClient: oktaAuth,
       useInteractionCodeFlow: sampleConfig.widget.useInteractionCodeFlow === 'true',
+      multiOptionalFactorEnroll: false,
     });
   }
 
@@ -54,6 +61,64 @@ export class LoginComponent implements OnInit {
     if (!originalUri || originalUri === DEFAULT_ORIGINAL_URI) {
       this.oktaAuth.setOriginalUri('/');
     }
+
+    // Add an event for enroll-choices
+    let email = "";
+    // Listen to ready events
+    this.signIn.on("ready", (context: any) => {
+      console.log("ready", context.controller);
+      if (context.controller === "primary-auth") {
+        const el = this.document.getElementById("okta-signin-username");
+        // Get the 
+        el?.addEventListener("change", function (event: any) {
+          console.log(typeof event)
+          if (event) {
+            email = event.target.value;
+            console.log(email)
+          }
+        });
+      }
+    });
+
+    // Listen to afterRender events
+    this.signIn.on("afterRender", (context: any) => {
+
+      console.log("afterRender", context.controller);
+
+      // This is when the enroll-choices view appear
+      if (context.controller === "enroll-choices") {
+        
+        console.log(context.controller);
+
+        // Hide the enroll-choices panel
+        const enrollChoices =
+          this.document.getElementsByClassName("enroll-choices")[0] as HTMLElement;
+
+        // Build the HTML code
+        const html = `
+            <h2>We're enrolling your mobile number to MFA</h2>
+            <p>Please wait for a moment. Kindly relogin after this page reloads.</p>
+          `;
+        enrollChoices.innerHTML = html;
+
+        // Show the enrollChoices element
+        enrollChoices.style.display = "block";
+
+        // TODO: Call API to Enroll MFA for user with email
+        // In the API call handler, do the following:
+        // 1. Get the user's information from okta
+        // 2. Get the user's phone number
+        // 3. Enroll and auto-activate the user's phone number in MFA
+        //    (See: https://developer.okta.com/docs/reference/api/factors/#enroll-and-auto-activate-okta-sms-factor)
+        // For now we'll just set a 3 second timeout method 
+        // to simulate the API call
+        setTimeout(() => {
+          // Redirect the user to the login page
+          this.router.navigateByUrl('/login')
+        }, 3000)
+
+      }
+    });
     
     this.signIn.showSignInToGetTokens({
       el: '#sign-in-widget',
