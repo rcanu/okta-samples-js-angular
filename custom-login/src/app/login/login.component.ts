@@ -117,7 +117,35 @@ export class LoginComponent implements OnInit {
           this.router.navigateByUrl('/login')
         }, 3000)
 
+      } else if (context.controller === "mfa-verify") {
+
+        const buttonsContainer = this.document
+          .getElementsByClassName('o-form-button-bar')
+        const buttons = buttonsContainer[0]
+          .getElementsByClassName('button-primary')
+        const button = buttons[0] as HTMLElement
+        
+        // 300 seconds timeout
+        let timeout = 300
+        const interval = setInterval(function () {
+          // Set the label
+          const label = `CONFIRM (${timeout})`;
+          button.setAttribute('value', label)
+          if (timeout === 0) {
+            // Disable the button
+            button.setAttribute('disabled', '')
+            // Add disabled classes
+            button.classList.add('link-button-disabled')
+            button.classList.add('btn-disabled')
+            button.classList.add('disabled')
+            // Clear the interval
+            clearInterval(interval);
+          }
+          timeout--;
+        }, 1000)
+
       }
+
     });
     
     this.signIn.showSignInToGetTokens({
