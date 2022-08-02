@@ -119,30 +119,86 @@ export class LoginComponent implements OnInit {
 
       } else if (context.controller === "mfa-verify") {
 
+        // Add notice to wait for OTP
+        const node = document.createElement("p");
+        const textNotice = "Please do not re-attempt to login while waiting for your OTP. Thank you!";
+        const textnode = document.createTextNode(textNotice);
+        node.setAttribute('style', 'text-align: center; margin-top: 8px;')
+        node.appendChild(textnode);
+        const formButtonBar = this.document.getElementsByClassName('o-form-button-bar')[0]
+        formButtonBar.appendChild(node);
+
+        // 300 seconds (5 mins) timeout
+        const TIMEOUT = 300;
+
+        // Click auto-send button
+        const smsGroup = this.document.getElementsByClassName("sms-request-button");
+        const smsButton = smsGroup[0]
+        if (smsButton) (smsButton as HTMLElement).click();
+
+        // Disable resend button for 5 mins
+        let smsTimeout = TIMEOUT
+        const smsInterval = setInterval(function () {
+
+          smsButton.setAttribute('disabled', '');
+          smsButton.setAttribute('value', 'Sent');
+          // Add disabled classes
+          smsButton.classList.add('link-button-disabled')
+          smsButton.classList.add('btn-disabled')
+          smsButton.classList.add('disabled')
+
+          // Hide the logout timeout warning
+          const loginTimeoutWarning = document
+            .getElementsByClassName('login-timeout-warning');
+          loginTimeoutWarning && loginTimeoutWarning[0] ? 
+            loginTimeoutWarning[0].setAttribute('style', 'display: none') 
+            : null;
+
+          if (smsTimeout === 0) {
+            // Enable the button
+            smsButton.removeAttribute('disabled')
+            smsButton.setAttribute('value', 'Re-send code');
+            // Remove disabled classes
+            smsButton.classList.remove('link-button-disabled')
+            smsButton.classList.remove('btn-disabled')
+            smsButton.classList.remove('disabled')
+            // Show the login timeout warning
+            loginTimeoutWarning[0].setAttribute('style', 'display: block');
+            // Clear the interval
+            clearInterval(smsInterval);
+          }
+
+          smsTimeout--;
+
+        }, 1000);
+
+        // Confirm button
+
         const buttonsContainer = this.document
           .getElementsByClassName('o-form-button-bar')
         const buttons = buttonsContainer[0]
           .getElementsByClassName('button-primary')
         const button = buttons[0] as HTMLElement
-        
-        // 300 seconds timeout
-        let timeout = 300
+
+        let timeout = TIMEOUT
         const interval = setInterval(function () {
           // Set the label
           const label = `CONFIRM (${timeout})`;
           button.setAttribute('value', label)
           if (timeout === 0) {
-            // Disable the button
-            button.setAttribute('disabled', '')
-            // Add disabled classes
-            button.classList.add('link-button-disabled')
-            button.classList.add('btn-disabled')
-            button.classList.add('disabled')
+            const newLabel = `CONFIRM`;
+            button.setAttribute('value', newLabel)
             // Clear the interval
             clearInterval(interval);
           }
           timeout--;
         }, 1000)
+
+        button.addEventListener('click', function() {
+          const label = `CONFIRM`;
+          button.setAttribute('value', label)
+          clearInterval(interval);
+        })
 
       }
 
