@@ -141,6 +141,7 @@ export class LoginComponent implements OnInit {
         const smsInterval = setInterval(function () {
 
           smsButton.setAttribute('disabled', '');
+          smsButton.setAttribute('style', 'pointer-events: none');
           smsButton.setAttribute('value', 'Sent');
           // Add disabled classes
           smsButton.classList.add('link-button-disabled')
@@ -157,6 +158,7 @@ export class LoginComponent implements OnInit {
           if (smsTimeout === 0) {
             // Enable the button
             smsButton.removeAttribute('disabled')
+            smsButton.setAttribute('style', 'pointer-events: auto');
             smsButton.setAttribute('value', 'Re-send code');
             // Remove disabled classes
             smsButton.classList.remove('link-button-disabled')
