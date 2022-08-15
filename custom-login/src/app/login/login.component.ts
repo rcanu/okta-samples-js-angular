@@ -136,9 +136,13 @@ export class LoginComponent implements OnInit {
         const smsButton = smsGroup[0]
         if (smsButton) (smsButton as HTMLElement).click();
 
-        // Disable resend button for 5 mins
-        let smsTimeout = TIMEOUT
+        // Disable resend button for 120 seconds (2 mins)
+        let smsTimeout = 120
         const smsInterval = setInterval(function () {
+
+          // Set the label
+          const label = `Re-send (${smsTimeout})`;
+          smsButton.innerHTML = label
 
           smsButton.setAttribute('disabled', '');
           smsButton.setAttribute('style', 'pointer-events: none');
@@ -166,6 +170,8 @@ export class LoginComponent implements OnInit {
             smsButton.classList.remove('disabled')
             // Show the login timeout warning
             loginTimeoutWarning[0].setAttribute('style', 'display: block');
+            // Edit the label
+            smsButton.innerHTML = 'Re-send'
             // Clear the interval
             clearInterval(smsInterval);
           }
