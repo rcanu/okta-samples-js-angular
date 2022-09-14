@@ -128,8 +128,8 @@ export class LoginComponent implements OnInit {
         const formButtonBar = this.document.getElementsByClassName('o-form-button-bar')[0]
         formButtonBar.appendChild(node);
 
-        // 300 seconds (5 mins) timeout
-        const TIMEOUT = 300;
+        // 120 seconds (2 mins) timeout
+        const TIMEOUT = 120;
 
         // Click auto-send button
         const smsGroup = this.document.getElementsByClassName("sms-request-button");
@@ -187,6 +187,18 @@ export class LoginComponent implements OnInit {
         const buttons = buttonsContainer[0]
           .getElementsByClassName('button-primary')
         const button = buttons[0] as HTMLElement
+
+        // Enable the "Confirm" button whenever the "Resend Code" button is clicked
+        smsButton.addEventListener('click', () => {
+          // Enable the button
+          button.removeAttribute('disabled')
+          button.setAttribute('style', 'pointer-events: auto');
+          button.setAttribute('value', 'Re-send code');
+          // Remove disabled classes
+          button.classList.remove('link-button-disabled')
+          button.classList.remove('btn-disabled')
+          button.classList.remove('disabled')
+        })
 
         let timeout = TIMEOUT
         const interval = setInterval(function () {
